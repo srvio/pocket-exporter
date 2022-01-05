@@ -44,38 +44,54 @@ const stakedBalance = new Gauge({
 });
 
 const updateHeight = async () => {
-  const resp = await pocket.rpc().query.getHeight();
-  if (resp instanceof QueryHeightResponse) {
-    height.set(Number(resp.height));
+  try {
+    const resp = await pocket.rpc().query.getHeight();
+    if (resp instanceof QueryHeightResponse) {
+      height.set(Number(resp.height));
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
 const updateAccount = async (address: string) => {
-  const resp = await pocket.rpc().query.getAccount(address);
-  if (resp instanceof QueryAccountResponse) {
-    balance.labels({ address }).set(Number(resp.balance));
+  try {
+    const resp = await pocket.rpc().query.getAccount(address);
+    if (resp instanceof QueryAccountResponse) {
+      balance.labels({ address }).set(Number(resp.balance));
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
 const updateNode = async (address: string) => {
-  const resp = await pocket.rpc().query.getNode(address);
-  if (resp instanceof QueryNodeResponse) {
-    isJailed.labels({ address }).set(resp.node.jailed ? 1 : 0);
-    nodeStatus.labels({ address }).set(Number(resp.node.status));
-    stakedBalance.labels({ address }).set(Number(resp.node.stakedTokens));
+  try {
+    const resp = await pocket.rpc().query.getNode(address);
+    if (resp instanceof QueryNodeResponse) {
+      isJailed.labels({ address }).set(resp.node.jailed ? 1 : 0);
+      nodeStatus.labels({ address }).set(Number(resp.node.status));
+      stakedBalance.labels({ address }).set(Number(resp.node.stakedTokens));
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
+const perform = () => {
+  const addresses = (CHECK_ADDRESSES || "").split(",");
+  CHECK_HEIGHT != "false" ? updateHeight() : null;
+
+  addresses.forEach((addr) => {
+    updateAccount(addr);
+    updateNode(addr);
+  });
+};
+
 export function init() {
-  const addresses = CHECK_ADDRESSES.split(",");
   (async () => {
     setInterval(() => {
-      CHECK_HEIGHT != "false" ? updateHeight() : null;
-
-      addresses.forEach((addr) => {
-        updateAccount(addr);
-        updateNode(addr);
-      });
+      perform();
     }, Number(INTERVAL_SECONDS || 60) * 1000);
   })();
 }
