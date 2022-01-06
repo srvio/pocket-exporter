@@ -2,7 +2,11 @@ import express from "express";
 import { register, collectDefaultMetrics } from "prom-client";
 import { init } from "./pokt-poller";
 
-collectDefaultMetrics({ register });
+const { INCLUDE_NODEJS_METRICS } = process.env;
+
+if (INCLUDE_NODEJS_METRICS === "true") {
+  collectDefaultMetrics({ register });
+}
 
 const app = express();
 

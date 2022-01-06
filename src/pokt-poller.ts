@@ -48,6 +48,8 @@ const updateHeight = async () => {
     const resp = await pocket.rpc().query.getHeight();
     if (resp instanceof QueryHeightResponse) {
       height.set(Number(resp.height));
+    } else {
+      // console.log(resp);
     }
   } catch (error) {
     console.log(error);
@@ -59,6 +61,8 @@ const updateAccount = async (address: string) => {
     const resp = await pocket.rpc().query.getAccount(address);
     if (resp instanceof QueryAccountResponse) {
       balance.labels({ address }).set(Number(resp.balance));
+    } else {
+      // console.log(resp);
     }
   } catch (error) {
     console.log(error);
@@ -72,6 +76,8 @@ const updateNode = async (address: string) => {
       isJailed.labels({ address }).set(resp.node.jailed ? 1 : 0);
       nodeStatus.labels({ address }).set(Number(resp.node.status));
       stakedBalance.labels({ address }).set(Number(resp.node.stakedTokens));
+    } else {
+      // console.log(resp);
     }
   } catch (error) {
     console.log(error);
