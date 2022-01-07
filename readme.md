@@ -5,6 +5,11 @@ Provides Pocket Network metrics in OpenMetrics standard that can be utilized by 
 ### Docker image
 `okdas/pocket-exporter` — just the latest tag for now, no verifiable cicd process with releases yet.
 
+### Scraping endpoint
+The service listens on `9000` port, and `/metric` path.
+
+It is recommended to use the same scraping interval as `INTERVAL_SECONDS` value.
+
 ### Configuration
 
 | Environment variable      | Description |
