@@ -40,15 +40,20 @@ const supportedChains = {
         url: rpcAddress + "/v1/client/sim",
         data: {
           relay_network_id: "0040",
-          payload: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "hmyv2_blockNumber",
-            params: [],
-          }),
+          payload: {
+            data: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "hmyv2_blockNumber",
+              params: [],
+            }),
+            method: "POST",
+            path: "",
+            headers: {},
+          },
         },
       });
-      return Number(res.data.result);
+      return Number(JSON.parse(res.data).result);
     },
   },
   "0005": {
@@ -59,15 +64,20 @@ const supportedChains = {
         url: rpcAddress + "/v1/client/sim",
         data: {
           relay_network_id: "0005",
-          payload: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_blockNumber",
-            params: [],
-          }),
+          payload: {
+            data: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "eth_blockNumber",
+              params: [],
+            }),
+            method: "POST",
+            path: "",
+            headers: {},
+          },
         },
       });
-      return Number(res.data.result);
+      return Number(JSON.parse(res.data).result);
     },
   },
   "0027": {
@@ -78,15 +88,20 @@ const supportedChains = {
         url: rpcAddress + "/v1/client/sim",
         data: {
           relay_network_id: "0027",
-          payload: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_blockNumber",
-            params: [],
-          }),
+          payload: {
+            data: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "eth_blockNumber",
+              params: [],
+            }),
+            method: "POST",
+            path: "",
+            headers: {},
+          },
         },
       });
-      return Number(res.data.result);
+      return Number(JSON.parse(res.data).result);
     },
   },
   "0021": {
@@ -97,15 +112,20 @@ const supportedChains = {
         url: rpcAddress + "/v1/client/sim",
         data: {
           relay_network_id: "0021",
-          payload: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_blockNumber",
-            params: [],
-          }),
+          payload: {
+            data: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "eth_blockNumber",
+              params: [],
+            }),
+            method: "POST",
+            path: "",
+            headers: {},
+          },
         },
       });
-      return Number(res.data.result);
+      return Number(JSON.parse(res.data).result);
     },
   },
 } as Chains;
@@ -122,7 +142,7 @@ export const simulateRelaysForChains = async (chains: string[]) => {
       simRelayChainHeight.set({ chain }, res);
     } catch (error) {
       simRelayChainError.inc({ chain });
-      console.error(error.message);
+      console.error(error?.message, error?.response?.data);
     }
   });
 };
