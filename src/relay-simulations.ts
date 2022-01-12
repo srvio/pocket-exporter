@@ -128,6 +128,25 @@ const supportedChains = {
       return Number(JSON.parse(res.data).result);
     },
   },
+  "0001": {
+    name: "pocket-network",
+    getHeight: async () => {
+      const res = await axios({
+        method: "POST",
+        url: rpcAddress + "/v1/client/sim",
+        data: {
+          relay_network_id: "0001",
+          payload: {
+            data: JSON.stringify({}),
+            method: "POST",
+            path: "v1/query/height",
+            headers: {},
+          },
+        },
+      });
+      return Number(JSON.parse(res.data).height);
+    },
+  },
 } as Chains;
 
 export const simulateRelaysForChains = async (chains: string[]) => {
