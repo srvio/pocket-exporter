@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Gauge, Counter } from "prom-client";
+import { isRPCAvailable } from "./pokt-poller";
 
 const { RPC_ADDRESS } = process.env;
 const rpcAddress = RPC_ADDRESS || "http://localhost:8081";
@@ -150,6 +151,11 @@ const supportedChains = {
 } as Chains;
 
 export const simulateRelaysForChains = async (chains: string[]) => {
+  if (isRPCAvailable() === false) {
+    console.log("RPC is not available yet");
+    return;
+  }
+
   chains.forEach(async (chain) => {
     if (!supportedChains[chain]) {
       simRelayChainNotImplemented.inc({ chain });
