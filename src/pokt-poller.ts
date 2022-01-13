@@ -24,6 +24,11 @@ const {
 const POCKET_DISPATCHER = new URL(RPC_ADDRESS || "http://localhost:8081");
 const rpcProvider = new HttpRpcProvider(POCKET_DISPATCHER);
 const pocket = new Pocket([POCKET_DISPATCHER], rpcProvider);
+const status = {
+  RPCAvailable: false,
+};
+
+export const isRPCAvailable = () => status.RPCAvailable;
 
 const height = new Gauge({
   name: "pocket_node_height",
@@ -52,8 +57,14 @@ const isJailed = new Gauge({
 const nodeStatus = new Gauge({
   name: "pocket_node_status",
   help: "0 - Unstaked, 1 - Unstaking, 2 - Staked",
-  labelNames: ["address"],
+  labelNames: ["address", "status"],
 });
+
+const statuses = {
+  0: "unstaked",
+  1: "unstaking",
+  2: "staked",
+};
 
 const stakedBalance = new Gauge({
   name: "pocket_node_staked_balance_upokt",
@@ -65,6 +76,10 @@ const updateHeight = async () => {
   try {
     const resp = await pocket.rpc().query.getHeight();
     if (resp instanceof QueryHeightResponse) {
+      if (isRPCAvailable() === false) {
+        status.RPCAvailable = true;
+      }
+
       height.set(Number(resp.height));
     } else {
       // console.log(resp);
@@ -92,7 +107,9 @@ const updateNode = async (address: string) => {
     const resp = await pocket.rpc().query.getNode(address);
     if (resp instanceof QueryNodeResponse) {
       isJailed.labels({ address }).set(resp.node.jailed ? 1 : 0);
-      nodeStatus.labels({ address }).set(Number(resp.node.status));
+      nodeStatus
+        .labels({ address, status: statuses[Number(resp.node.status)] })
+        .set(1);
       stakedBalance.labels({ address }).set(Number(resp.node.stakedTokens));
     } else {
       // console.log(resp);
@@ -103,17 +120,21 @@ const updateNode = async (address: string) => {
 };
 
 const performChecks = async () => {
+  updateHeight();
+
   const addresses = (CHECK_ADDRESSES || "").split(",");
   if (VALIDATOR_ADDRESS) {
     addresses.push(VALIDATOR_ADDRESS);
   }
 
-  CHECK_HEIGHT != "false" ? updateHeight() : null;
-
-  addresses.forEach((addr) => {
+  [...new Set(addresses)].forEach((addr) => {
     updateAccount(addr);
     updateNode(addr);
   });
+
+  if (!(PERFORM_RELAY_SIMULATIONS === "false")) {
+    simulateRelaysForChains(configuredChains);
+  }
 
   if (!(CHECK_VALIDATOR === "false")) {
     const address = getValidator();
@@ -123,17 +144,11 @@ const performChecks = async () => {
     }
 
     const stakedChains = node.node.chains;
-    const configuredChains = getConfiguredChains();
-
     stakedChains.forEach(function (chain) {
       if (!configuredChains.includes(chain)) {
         stakedChainMissingConfig.set({ chain }, 1);
       }
     });
-
-    if (!(PERFORM_RELAY_SIMULATIONS === "false")) {
-      simulateRelaysForChains(configuredChains);
-    }
   }
 };
 
@@ -157,6 +172,8 @@ const getConfiguredChains = () => {
   );
   return JSON.parse(chainsJson).map((el) => el.id) as string[];
 };
+
+const configuredChains = getConfiguredChains();
 
 export function init() {
   (async () => {
